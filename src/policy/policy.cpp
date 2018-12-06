@@ -88,6 +88,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
         return false;
     }
     
+    std::cout << "FN: isStandardTX - CTransaction: " << CTransaction; //ZYK
     std::cout << "FN: isStandardTX - tx.nVersion: " << tx.nVersion; //ZYK
 
     // Extremely large transactions with lots of inputs can cost the network
@@ -100,7 +101,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
         return false;
     }
     
-    std::cout << "FN: isStandardTX - Transaction size (sz): " << tx.nVersion; //ZYK
+    std::cout << "FN: isStandardTX - Transaction size (sz): " << sz; //ZYK
 
     for (const CTxIn& txin : tx.vin)
     {
