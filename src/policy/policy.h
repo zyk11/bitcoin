@@ -104,7 +104,7 @@ bool IsCleanTX(const CTransaction& tx, ??);
       * Checks if the transaction contains JPEG, GIF, PNG magic bytes data in P2PKH and P2SH addresses, as well as
       * OP_RETURN data and returns True      
     */
- */
+ 
 
 extern CFeeRate incrementalRelayFee;
 extern CFeeRate dustRelayFee;
