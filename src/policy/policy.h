@@ -98,6 +98,14 @@ bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs)
      */
 bool IsWitnessStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs);
 
+/**
+bool IsCleanTX(const CTransaction& tx, ??); 
+    /**
+      * Checks if the transaction contains JPEG, GIF, PNG magic bytes data in P2PKH and P2SH addresses, as well as
+      * OP_RETURN data and returns True      
+    */
+ */
+
 extern CFeeRate incrementalRelayFee;
 extern CFeeRate dustRelayFee;
 extern unsigned int nBytesPerSigOp;
