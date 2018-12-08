@@ -13,7 +13,6 @@
 #include <tinyformat.h>
 #include <util/system.h>
 #include <util/strencodings.h>
-#include <iostream.h> //ZYK
 
 
 CAmount GetDustThreshold(const CTxOut& txout, const CFeeRate& dustRelayFeeIn)
@@ -59,9 +58,7 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
 {
     std::vector<std::vector<unsigned char> > vSolutions;
     whichType = Solver(scriptPubKey, vSolutions);
-    
-    std::cout << "FN: isStandard - scriptPubKey: " << scriptPubKey; //ZYK
-    std::cout << "FN: isStandard - vSolutions: " << vSolutions; //ZYK
+
     
     if (whichType == TX_NONSTANDARD || whichType == TX_WITNESS_UNKNOWN) {
         return false;
@@ -87,9 +84,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
         reason = "version";
         return false;
     }
-    
-    std::cout << "FN: isStandardTX - CTransaction: " << CTransaction; //ZYK
-    std::cout << "FN: isStandardTX - tx.nVersion: " << tx.nVersion; //ZYK
+
 
     // Extremely large transactions with lots of inputs can cost the network
     // almost as much to process as they cost the sender in fees, because
@@ -100,8 +95,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
         reason = "tx-size";
         return false;
     }
-    
-    std::cout << "FN: isStandardTX - Transaction size (sz): " << sz; //ZYK
+  
 
     for (const CTxIn& txin : tx.vin)
     {
@@ -248,11 +242,11 @@ bool IsWitnessStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs)
     return true;
 }
 
-/**
-bool IsCleanTX(const CTransaction& tx, ??); 
-{
-}
-*/
+///**
+//bool IsCleanTX(const CTransaction& tx, ??); 
+//{
+//}
+//*/
 
 CFeeRate incrementalRelayFee = CFeeRate(DEFAULT_INCREMENTAL_RELAY_FEE);
 CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
