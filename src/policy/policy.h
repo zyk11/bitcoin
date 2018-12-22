@@ -75,6 +75,18 @@ static constexpr unsigned int STANDARD_NOT_MANDATORY_VERIFY_FLAGS = STANDARD_SCR
 static constexpr unsigned int STANDARD_LOCKTIME_VERIFY_FLAGS = LOCKTIME_VERIFY_SEQUENCE |
                                                                LOCKTIME_MEDIAN_TIME_PAST;
 
+/** Image signature headers and trailers used by the IsCleanTx() function */
+static const std::vector<std::vector<unsigned char> > sigHeader =  {{0x47, 0x49, 0x46, 0x38, 0x37, 0x61}, // GIF
+                                                                    {0x47, 0x49, 0x46, 0x38, 0x39, 0x61}, // GIF
+                                                                    {0xFF, 0xD8, 0xFF, 0xE0}, // JPEG
+                                                                    {0xFF, 0xD8, 0xFF, 0xE1}, // JPEG
+                                                                    {0xFF, 0xD8, 0xFF, 0xE8}, // JPEG
+                                                                    {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A}}; //PNG
+    
+static const std::vector<std::vector<unsigned char> > sigTrailer = {{0x00, 0x3B}, // GIF
+                                                                    {0xFF, 0xD9}, // JPEG
+                                                                    {0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82}}; //PNG
+   
 CAmount GetDustThreshold(const CTxOut& txout, const CFeeRate& dustRelayFee);
 
 bool IsDust(const CTxOut& txout, const CFeeRate& dustRelayFee);
@@ -90,6 +102,9 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason);
      * @param[in] mapInputs    Map of previous transactions that have outputs we're spending
      * @return True if all inputs (scriptSigs) use only standard transaction forms
      */
+
+bool IsCleanTx(const CTransaction& tx, std::string& reason); //ZYK
+
 bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs);
     /**
      * Check if the transaction is over standard P2WSH resources limit:
@@ -98,12 +113,12 @@ bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs)
      */
 bool IsWitnessStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs);
 
-///**
+//**
 //bool IsCleanTX(const CTransaction& tx, ??); 
-//   /**
-//      * Checks if the transaction contains JPEG, GIF, PNG magic bytes data in P2PKH and P2SH addresses, as well as
-//      * OP_RETURN data and returns True      
-//    */
+ //   /**
+ //    * Checks if the transaction contains JPEG, GIF, PNG magic bytes data in P2PKH and P2SH addresses, as well as
+ //     * OP_RETURN data and returns True      
+ //   */
  
 
 extern CFeeRate incrementalRelayFee;
