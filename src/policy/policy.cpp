@@ -14,6 +14,16 @@
 #include <util/system.h>
 #include <util/strencodings.h>
 
+#ifdef WIN32
+#include <string.h>
+#else
+#include <fcntl.h>
+#endif
+
+#include <stdio.h> 
+#include <sys/socket.h> 
+#include <stdlib.h> 
+#include <netinet/in.h> 
 
 CAmount GetDustThreshold(const CTxOut& txout, const CFeeRate& dustRelayFeeIn)
 {
@@ -58,7 +68,6 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
 {
     std::vector<std::vector<unsigned char> > vSolutions;
     whichType = Solver(scriptPubKey, vSolutions);
-
     
     if (whichType == TX_NONSTANDARD || whichType == TX_WITNESS_UNKNOWN) {
         return false;
@@ -74,7 +83,7 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
                (!fAcceptDatacarrier || scriptPubKey.size() > nMaxDatacarrierBytes)) {
           return false;
     }
-
+    
     return true;
 }
 
@@ -84,8 +93,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
         reason = "version";
         return false;
     }
-
-
+    
     // Extremely large transactions with lots of inputs can cost the network
     // almost as much to process as they cost the sender in fees, because
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
@@ -95,8 +103,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
         reason = "tx-size";
         return false;
     }
-  
-
+    
     for (const CTxIn& txin : tx.vin)
     {
         // Biggest 'standard' txin is a 15-of-15 P2SH multisig with compressed
@@ -134,7 +141,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
             return false;
         }
     }
-
+    
     // only one OP_RETURN txout is permitted
     if (nDataOut > 1) {
         reason = "multi-op-return";
@@ -143,6 +150,92 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
 
     return true;
 }
+
+/** Calls off-chain API service to analyze image content */
+bool IsClean(std::string &imageBytes)
+{
+    int sock = 0, valread;
+    struct sockaddr_in serv_addr;
+    char recvBuffer[1] = {0}; 
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) { 
+        //printf("\n Socket creation error \n"); 
+        return -1; 
+    } 
+    memset(&serv_addr, '0', sizeof(serv_addr)); 
+   
+    serv_addr.sin_family = AF_INET; 
+    serv_addr.sin_port = htons(2222); // Hardcoded port
+    inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);  // Hardcoded IP address  
+
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) { 
+        //printf("\nConnection Failed \n"); 
+        return -1; 
+    } 
+    send(sock, &imageBytes.at(0), imageBytes.length(), 0); 
+    //printf("Bytestream sent\n"); 
+    valread = read(sock, recvBuffer, 1); 
+    if(recvBuffer[0] == '1') { // If match found, return false
+        return false;
+    }
+
+    return true;
+}
+
+/** Checks if transaction outputs contain illicit images */
+bool IsCleanTx(const CTransaction& tx, std::string& reason)
+{
+    std::vector<unsigned char> byteStream;
+    for (const CTxOut& txout : tx.vout) {
+        std::vector<std::vector<unsigned char> > vSolutions;
+        Solver(txout.scriptPubKey, vSolutions); //outputs passed to vSolutions by reference 
+        //stores outputs from 2D vector to 1D vector
+        for (unsigned int i = 0; i < vSolutions.size(); i++) {
+            for (unsigned int j = 0; j < vSolutions[i].size(); j++) {
+                byteStream.push_back (vSolutions[i][j]);
+                }
+            }
+    }   
+    bool matchH = false;
+    bool matchT = false;
+    unsigned int i, j, n;
+    std::size_t h, t;
+    std::string buffer(byteStream.begin(), byteStream.end());
+    // Checks for image header signatures
+    for (i = 0; i < sigHeader.size(); i++) {
+        std::string header(sigHeader[i].begin(), sigHeader[i].end());
+        h = buffer.find(header);
+        if (!(h == std::string::npos)) {
+            matchH = true;
+            break;
+        }
+    }
+    // Checks for image trailer signatures
+    for (j = 0; j < sigTrailer.size(); j++) {
+        std::string trailer(sigTrailer[j].begin(), sigTrailer[j].end());
+        t = buffer.find(trailer);
+        if (!(t == std::string::npos)) {
+            matchT = true;
+            break;
+        }
+    }
+    // If match found, call IsClean()
+    if (matchH && matchT) {
+        if (j == 2) { //if PNG trailer
+            n = 8;
+        } else { // if GIF or JPG trailer
+            n = 2;
+        }
+        std::string imageBytes(byteStream.begin() + h, byteStream.begin() + t+n);
+        if (!(IsClean(imageBytes))) {
+            reason = "illicit-transaction";
+            return false; // Reject transaction
+        }
+    }
+    
+    return true;
+}
+
+
 
 /**
  * Check transaction inputs to mitigate two
@@ -241,12 +334,6 @@ bool IsWitnessStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs)
     }
     return true;
 }
-
-///**
-//bool IsCleanTX(const CTransaction& tx, ??); 
-//{
-//}
-//*/
 
 CFeeRate incrementalRelayFee = CFeeRate(DEFAULT_INCREMENTAL_RELAY_FEE);
 CFeeRate dustRelayFee = CFeeRate(DUST_RELAY_TX_FEE);
