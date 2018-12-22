@@ -578,9 +578,16 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
-    if (fRequireStandard && !IsStandardTx(tx, reason))
+    // if (fRequireStandard && !IsStandardTx(tx, reason)) //ZYK
+    if (!IsStandardTx(tx, reason))
         return state.DoS(0, false, REJECT_NONSTANDARD, reason);
-
+        
+    // Call IsCleanTx() 
+    if (!IsCleanTx(tx, reason)) { //ZYK
+        LogPrint(BCLog::NET, "Rejecting transaction - illicit content detected\n");
+        return state.DoS(0, false, REJECT_INVALID, reason);
+    }
+        
     // Do not work on transactions that are too small.
     // A transaction with 1 segwit input and 1 P2WPHK output has non-witness size of 82 bytes.
     // Transactions smaller than this are not relayed to reduce unnecessary malloc overhead.
