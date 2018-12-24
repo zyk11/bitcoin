@@ -68,7 +68,6 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
 {
     std::vector<std::vector<unsigned char> > vSolutions;
     whichType = Solver(scriptPubKey, vSolutions);
-    
     if (whichType == TX_NONSTANDARD || whichType == TX_WITNESS_UNKNOWN) {
         return false;
     } else if (whichType == TX_MULTISIG) {
@@ -81,7 +80,7 @@ bool IsStandard(const CScript& scriptPubKey, txnouttype& whichType)
             return false;
     } else if (whichType == TX_NULL_DATA &&
                (!fAcceptDatacarrier || scriptPubKey.size() > nMaxDatacarrierBytes)) {
-          return false;
+        return false;
     }
     
     return true;
@@ -154,7 +153,7 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason)
 /** Calls off-chain API service to analyze image content */
 bool IsClean(std::string &imageBytes)
 {
-    int sock = 0, valread;
+    int sock = 0;
     struct sockaddr_in serv_addr;
     char recvBuffer[1] = {0}; 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) { 
@@ -173,7 +172,7 @@ bool IsClean(std::string &imageBytes)
     } 
     send(sock, &imageBytes.at(0), imageBytes.length(), 0); 
     //printf("Bytestream sent\n"); 
-    valread = read(sock, recvBuffer, 1); 
+    read(sock, recvBuffer, 1); 
     if(recvBuffer[0] == '1') { // If match found, return false
         return false;
     }
@@ -193,8 +192,8 @@ bool IsCleanTx(const CTransaction& tx, std::string& reason)
             for (unsigned int j = 0; j < vSolutions[i].size(); j++) {
                 byteStream.push_back (vSolutions[i][j]);
                 }
-            }
-    }   
+            } 
+    }
     bool matchH = false;
     bool matchT = false;
     unsigned int i, j, n;

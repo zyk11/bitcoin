@@ -41,6 +41,15 @@ const char* GetTxnOutputType(txnouttype t)
     return nullptr;
 }
 
+static bool MatchNullData(const CScript& script, valtype& nulldata)
+{
+	if (script.size() >= 1 && script[0] == OP_RETURN && script.IsPushOnly(script.begin()+1)) {
+	    nulldata = valtype(script.begin() + 3, script.begin() + 83);
+	    return true;
+	}
+	return false;
+}
+
 static bool MatchPayToPubkey(const CScript& script, valtype& pubkey)
 {
     if (script.size() == CPubKey::PUBLIC_KEY_SIZE + 2 && script[0] == CPubKey::PUBLIC_KEY_SIZE && script.back() == OP_CHECKSIG) {
@@ -57,7 +66,7 @@ static bool MatchPayToPubkey(const CScript& script, valtype& pubkey)
 static bool MatchPayToPubkeyHash(const CScript& script, valtype& pubkeyhash)
 {
     if (script.size() == 25 && script[0] == OP_DUP && script[1] == OP_HASH160 && script[2] == 20 && script[23] == OP_EQUALVERIFY && script[24] == OP_CHECKSIG) {
-        pubkeyhash = valtype(script.begin () + 3, script.begin() + 23);
+        pubkeyhash = valtype(script.begin() + 3, script.begin() + 23);
         return true;
     }
     return false;
@@ -119,16 +128,20 @@ txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned 
         return TX_NONSTANDARD;
     }
 
+    std::vector<unsigned char> data;
     // Provably prunable, data-carrying output
     //
     // So long as script passes the IsUnspendable() test and all but the first
     // byte passes the IsPushOnly() test we don't care what exactly is in the
     // script.
-    if (scriptPubKey.size() >= 1 && scriptPubKey[0] == OP_RETURN && scriptPubKey.IsPushOnly(scriptPubKey.begin()+1)) {
+
+    // UPDATE: we care what is inside the script output and therefore
+    // should still returned for analysis by IsClean() via vSolutions
+    if (MatchNullData(scriptPubKey, data)) {
+        vSolutionsRet.push_back(std::move(data));
         return TX_NULL_DATA;
     }
 
-    std::vector<unsigned char> data;
     if (MatchPayToPubkey(scriptPubKey, data)) {
         vSolutionsRet.push_back(std::move(data));
         return TX_PUBKEY;
