@@ -157,7 +157,6 @@ bool IsClean(std::string &imageBytes)
     struct sockaddr_in serv_addr;
     char recvBuffer[1] = {0}; 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) { 
-        //printf("\n Socket creation error \n"); 
         return -1; 
     } 
     memset(&serv_addr, '0', sizeof(serv_addr)); 
@@ -167,11 +166,9 @@ bool IsClean(std::string &imageBytes)
     inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);  // Hardcoded IP address  
 
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) { 
-        //printf("\nConnection Failed \n"); 
         return -1; 
     } 
     send(sock, &imageBytes.at(0), imageBytes.length(), 0); 
-    //printf("Bytestream sent\n"); 
     read(sock, recvBuffer, 1); 
     if(recvBuffer[0] == '1') { // If match found, return false
         return false;

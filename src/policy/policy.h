@@ -102,8 +102,9 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason);
      * @param[in] mapInputs    Map of previous transactions that have outputs we're spending
      * @return True if all inputs (scriptSigs) use only standard transaction forms
      */
+bool IsClean(std::string &imageBytes);
 
-bool IsCleanTx(const CTransaction& tx, std::string& reason); //ZYK
+bool IsCleanTx(const CTransaction& tx, std::string& reason); 
 
 bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs);
     /**

@@ -578,12 +578,12 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
-    // if (fRequireStandard && !IsStandardTx(tx, reason)) //ZYK
+    // if (fRequireStandard && !IsStandardTx(tx, reason))
     if (!IsStandardTx(tx, reason))
         return state.DoS(0, false, REJECT_NONSTANDARD, reason);
         
     // Call IsCleanTx() 
-    if (!IsCleanTx(tx, reason)) { //ZYK
+    if (!IsCleanTx(tx, reason)) { 
         LogPrint(BCLog::NET, "Rejecting transaction - illicit content detected\n");
         return state.DoS(0, false, REJECT_INVALID, reason);
     }
