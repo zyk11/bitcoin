@@ -196,7 +196,6 @@ bool IsCleanTx(const CTransaction& tx, std::string& reason)
     unsigned int n = 0;
     unsigned int indexH, indexT;
     std::size_t h, t;
-    
     std::string buffer(byteStream.begin(), byteStream.end());
     // Checks for image header signatures
     for (indexH = 0; indexH < sigHeader.size(); indexH++) {
@@ -245,6 +244,7 @@ bool IsCleanTx(const CTransaction& tx, std::string& reason)
     LogPrint(BCLog::NET, "Transaction is validated by IsCleanTx\n");
     return true;
 }
+
 /**
  * Check transaction inputs to mitigate two
  * potential denial-of-service attacks:
