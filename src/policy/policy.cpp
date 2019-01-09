@@ -193,12 +193,14 @@ bool IsCleanTx(const CTransaction& tx, std::string& reason)
     }
     bool matchH = false;
     bool matchT = false;
-    unsigned int i, j, n;
+    unsigned int n = 0;
+    unsigned int indexH, indexT;
     std::size_t h, t;
+    
     std::string buffer(byteStream.begin(), byteStream.end());
     // Checks for image header signatures
-    for (i = 0; i < sigHeader.size(); i++) {
-        std::string header(sigHeader[i].begin(), sigHeader[i].end());
+    for (indexH = 0; indexH < sigHeader.size(); indexH++) {
+        std::string header(sigHeader[indexH].begin(), sigHeader[indexH].end());
         h = buffer.find(header);
         if (!(h == std::string::npos)) {
             matchH = true;
@@ -206,8 +208,8 @@ bool IsCleanTx(const CTransaction& tx, std::string& reason)
         }
     }
     // Checks for image trailer signatures
-    for (j = 0; j < sigTrailer.size(); j++) {
-        std::string trailer(sigTrailer[j].begin(), sigTrailer[j].end());
+    for (indexT = 0; indexT < sigTrailer.size(); indexT++) {
+        std::string trailer(sigTrailer[indexT].begin(), sigTrailer[indexT].end());
         t = buffer.find(trailer);
         if (!(t == std::string::npos)) {
             matchT = true;
@@ -216,23 +218,33 @@ bool IsCleanTx(const CTransaction& tx, std::string& reason)
     }
     // If match found, call IsClean()
     if (matchH && matchT) {
-        if (j == 2) { //if PNG trailer
-            n = 8;
-        } else { // if GIF or JPG trailer
-            n = 2;
+        LogPrint(BCLog::NET, "Image file detected in transaction\n");
+        // Checks what type of trailer was found to ensure correct trailing bytes
+        switch(indexT) {
+            case GIF_SIGTRAILER_INDEX:
+                n = GIF_TRAILER;
+                break;            
+            case JPG_SIGTRAILER_INDEX:
+                n = JPG_TRAILER;
+                break;
+            case PNG_SIGTRAILER_INDEX:
+                n = PNG_TRAILER;
+                break;
         }
-        std::string imageBytes(byteStream.begin() + h, byteStream.begin() + t+n);
+        // If PNG trailer, trailer is 8 bytes long, otherwise 2 bytes long
+        std::string imageBytes(byteStream.begin() + h, byteStream.begin() + t + n);
         if (!(IsClean(imageBytes))) {
             reason = "illicit-transaction";
             return false; // Reject transaction
         }
     }
+    else {
+        LogPrint(BCLog::NET, "No image files detected in transaction\n");
+    }
     
+    LogPrint(BCLog::NET, "Transaction is validated by IsCleanTx\n");
     return true;
 }
-
-
-
 /**
  * Check transaction inputs to mitigate two
  * potential denial-of-service attacks:

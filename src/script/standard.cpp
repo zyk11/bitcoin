@@ -44,7 +44,7 @@ const char* GetTxnOutputType(txnouttype t)
 static bool MatchNullData(const CScript& script, valtype& nulldata)
 {
 	if (script.size() >= 1 && script[0] == OP_RETURN && script.IsPushOnly(script.begin()+1)) {
-	    nulldata = valtype(script.begin() + 3, script.begin() + 83);
+	    nulldata = valtype(script.begin() + 2, script.end());
 	    return true;
 	}
 	return false;

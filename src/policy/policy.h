@@ -86,6 +86,14 @@ static const std::vector<std::vector<unsigned char> > sigHeader =  {{0x47, 0x49,
 static const std::vector<std::vector<unsigned char> > sigTrailer = {{0x00, 0x3B}, // GIF
                                                                     {0xFF, 0xD9}, // JPEG
                                                                     {0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82}}; //PNG
+
+#define GIF_SIGTRAILER_INDEX 	0
+#define JPG_SIGTRAILER_INDEX 	1                                                                    
+#define PNG_SIGTRAILER_INDEX 	2
+
+#define GIF_TRAILER     2
+#define JPG_TRAILER 	2
+#define PNG_TRAILER 	8
    
 CAmount GetDustThreshold(const CTxOut& txout, const CFeeRate& dustRelayFee);
 
